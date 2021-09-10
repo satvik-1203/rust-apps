@@ -1,4 +1,5 @@
-use crate::http::request::Request;
+use crate::http::{request::Request, response::Response, status_code::StatusCode};
+
 use std::convert::{TryFrom, TryInto};
 use std::io::Read;
 use std::net::{TcpListener, TcpStream};
@@ -23,18 +24,19 @@ impl Server {
           match stream.read(&mut buffer) {
             Ok(_) => match Request::try_from(&buffer[..]) {
               Ok(request) => {
-                println!("{:#?}", request);
+                let res = Response::New(StatusCode::Ok, Some("<h1>WOW Working</h1>".to_string()));
+                res.send(&mut stream);
               }
               Err(e) => {
-                println!("{:#?}", e)
+                let res =
+                  Response::New(StatusCode::BadRequest, Some("<h1>Failed</h1>".to_string()));
+                res.send(&mut stream);
               }
             },
-            Err(err) => {
-              println!("Error: {}", err)
-            }
+            Err(_) => {}
           }
         }
-        Err(err) => println!("{}", err),
+        Err(_) => {}
       }
     }
   }
